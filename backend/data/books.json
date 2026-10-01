@@ -1,0 +1,170 @@
+[
+  {
+    "id": 1,
+    "judul": "Laut Bercerita",
+    "penulis": "Leila S. Chudori",
+    "kategori": "Novel",
+    "stok": 8
+  },
+  {
+    "id": 2,
+    "judul": "Bumi Manusia",
+    "penulis": "Pramoedya Ananta Toer",
+    "kategori": "Novel",
+    "stok": 5
+  },
+  {
+    "id": 3,
+    "judul": "Filosofi Teras",
+    "penulis": "Henry Manampiring",
+    "kategori": "Pengembangan Diri",
+    "stok": 2
+  },
+  {
+    "id": 4,
+    "judul": "Atomic Habits",
+    "penulis": "James Clear",
+    "kategori": "Pengembangan Diri",
+    "stok": 7
+  },
+  {
+    "id": 5,
+    "judul": "Clean Code",
+    "penulis": "Robert C. Martin",
+    "kategori": "Teknologi",
+    "stok": 4
+  },
+  {
+    "id": 6,
+    "judul": "The Pragmatic Programmer",
+    "penulis": "David Thomas & Andrew Hunt",
+    "kategori": "Teknologi",
+    "stok": 3
+  },
+  {
+    "id": 7,
+    "judul": "Algoritma dan Pemrograman",
+    "penulis": "Rinaldi Munir",
+    "kategori": "Teknologi",
+    "stok": 6
+  },
+  {
+    "id": 8,
+    "judul": "Negeri 5 Menara",
+    "penulis": "Ahmad Fuadi",
+    "kategori": "Novel",
+    "stok": 1
+  },
+  {
+    "id": 9,
+    "judul": "Pulang",
+    "penulis": "Tere Liye",
+    "kategori": "Novel",
+    "stok": 0
+  },
+  {
+    "id": 10,
+    "judul": "Design of Everyday Things",
+    "penulis": "Don Norman",
+    "kategori": "Desain",
+    "stok": 5
+  },
+  {
+    "id": 11,
+    "judul": "Don't Make Me Think",
+    "penulis": "Steve Krug",
+    "kategori": "Desain",
+    "stok": 3
+  },
+  {
+    "id": 12,
+    "judul": "Refactoring",
+    "penulis": "Martin Fowler",
+    "kategori": "Teknologi",
+    "stok": 2
+  },
+  {
+    "id": 13,
+    "judul": "Sapiens",
+    "penulis": "Yuval Noah Harari",
+    "kategori": "Sejarah",
+    "stok": 9
+  },
+  {
+    "id": 14,
+    "judul": "Homo Deus",
+    "penulis": "Yuval Noah Harari",
+    "kategori": "Sejarah",
+    "stok": 4
+  },
+  {
+    "id": 15,
+    "judul": "Man's Search for Meaning",
+    "penulis": "Viktor E. Frankl",
+    "kategori": "Psikologi",
+    "stok": 3
+  },
+  {
+    "id": 16,
+    "judul": "Thinking, Fast and Slow",
+    "penulis": "Daniel Kahneman",
+    "kategori": "Psikologi",
+    "stok": 6
+  },
+  {
+    "id": 17,
+    "judul": "The Psychology of Money",
+    "penulis": "Morgan Housel",
+    "kategori": "Bisnis",
+    "stok": 5
+  },
+  {
+    "id": 18,
+    "judul": "Zero to One",
+    "penulis": "Peter Thiel",
+    "kategori": "Bisnis",
+    "stok": 0
+  },
+  {
+    "id": 19,
+    "judul": "Deep Work",
+    "penulis": "Cal Newport",
+    "kategori": "Produktivitas",
+    "stok": 2
+  },
+  {
+    "id": 20,
+    "judul": "Digital Minimalism",
+    "penulis": "Cal Newport",
+    "kategori": "Produktivitas",
+    "stok": 7
+  },
+  {
+    "id": 21,
+    "judul": "The Clean Coder",
+    "penulis": "Robert C. Martin",
+    "kategori": "Teknologi",
+    "stok": 1
+  },
+  {
+    "id": 22,
+    "judul": "Sprint",
+    "penulis": "Jake Knapp",
+    "kategori": "Desain",
+    "stok": 4
+  },
+  {
+    "id": 23,
+    "judul": "Hooked",
+    "penulis": "Nir Eyal",
+    "kategori": "Produk",
+    "stok": 6
+  },
+  {
+    "id": 24,
+    "judul": "Inspired",
+    "penulis": "Marty Cagan",
+    "kategori": "Produk",
+    "stok": 3
+  }
+]
