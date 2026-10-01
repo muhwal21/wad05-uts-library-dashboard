@@ -896,3 +896,79 @@ a {
     padding: 23px 18px;
   }
 }
+/* Softer rounded UI */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+/* Buttons */
+.button,
+.sort-control,
+.modal-close {
+  border-radius: var(--radius-sm);
+}
+
+/* Input */
+.search-field input,
+.book-form input {
+  border-radius: var(--radius-sm);
+}
+
+/* Book visual/card */
+.book-cover,
+.cover-placeholder {
+  border-radius: var(--radius-md);
+}
+
+/* Stock badge */
+.stock-label {
+  border-radius: 999px;
+}
+
+/* Statistics */
+.stats-row {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.stat-box {
+  border-top: 0;
+  border-bottom: 0;
+}
+
+/* Messages */
+.message {
+  border-radius: var(--radius-sm);
+}
+
+/* Modal */
+.book-modal {
+  border-radius: var(--radius-lg);
+}
+
+/* Empty state */
+.empty-state {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+/* Stock category section */
+.category-list {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.category-row {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Progress bar */
+.bar-track,
+.bar-fill {
+  border-radius: 999px;
+}
