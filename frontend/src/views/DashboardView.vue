@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   createBook as createBookRequest,
   deleteBook as deleteBookRequest,
@@ -24,14 +24,13 @@ const emptyForm = () => ({
   stok: 0,
 })
 
-const form = reactive(emptyForm())
+// State form memakai ref agar sesuai ketentuan UTS.
+const form = ref(emptyForm())
 
 const filteredBooks = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
 
-  if (!query) {
-    return books.value
-  }
+  if (!query) return books.value
 
   return books.value.filter((book) => {
     return (
@@ -83,21 +82,12 @@ const categorySummary = computed(() => {
   }))
 })
 
-const resultsLabel = computed(() => {
-  const count = sortedBooks.value.length
-  return `${count} ${count === 1 ? 'buku' : 'buku'} ditampilkan`
-})
+const resultsLabel = computed(() => `${sortedBooks.value.length} books`)
 
 function getStockStatus(stock) {
-  if (stock === 0) {
-    return { label: 'Stok Habis', className: 'stock-out' }
-  }
-
-  if (stock <= 3) {
-    return { label: 'Menipis', className: 'stock-low' }
-  }
-
-  return { label: 'Tersedia', className: 'stock-available' }
+  if (stock === 0) return { label: 'Sold out', className: 'stock-out' }
+  if (stock <= 3) return { label: 'Low stock', className: 'stock-low' }
+  return { label: 'Available', className: 'stock-available' }
 }
 
 function toggleSort() {
@@ -105,7 +95,7 @@ function toggleSort() {
 }
 
 function resetForm() {
-  Object.assign(form, emptyForm())
+  form.value = emptyForm()
   editingId.value = null
 }
 
@@ -115,10 +105,12 @@ function openCreateForm() {
 }
 
 function openEditForm(book) {
-  form.judul = book.judul
-  form.penulis = book.penulis
-  form.kategori = book.kategori
-  form.stok = book.stok
+  form.value = {
+    judul: book.judul,
+    penulis: book.penulis,
+    kategori: book.kategori,
+    stok: book.stok,
+  }
   editingId.value = book.id
   isFormOpen.value = true
 }
@@ -133,7 +125,7 @@ function showSuccess(message) {
   successMessage.value = message
   window.setTimeout(() => {
     successMessage.value = ''
-  }, 3000)
+  }, 2500)
 }
 
 async function loadBooks() {
@@ -154,10 +146,10 @@ async function submitForm() {
   errorMessage.value = ''
 
   const payload = {
-    judul: form.judul.trim(),
-    penulis: form.penulis.trim(),
-    kategori: form.kategori.trim(),
-    stok: Number(form.stok),
+    judul: form.value.judul.trim(),
+    penulis: form.value.penulis.trim(),
+    kategori: form.value.kategori.trim(),
+    stok: Number(form.value.stok),
   }
 
   try {
@@ -180,11 +172,8 @@ async function submitForm() {
 }
 
 async function removeBook(book) {
-  const confirmed = window.confirm(`Hapus "${book.judul}" dari daftar?`)
-
-  if (!confirmed) {
-    return
-  }
+  const confirmed = window.confirm(`Hapus "${book.judul}" dari koleksi?`)
+  if (!confirmed) return
 
   errorMessage.value = ''
 
@@ -202,215 +191,150 @@ onMounted(loadBooks)
 
 <template>
   <main>
-    <section class="hero-section">
-      <div class="hero-copy">
-        <p class="eyebrow">LIBRARY INVENTORY / LIVE CATALOG</p>
-        <h1>Books, tracked<br />without the noise.</h1>
-        <p class="hero-description">
-          Kelola koleksi, pantau stok, dan temukan judul dalam satu dashboard.
-          Data terhubung langsung ke FastAPI.
-        </p>
-      </div>
-
-      <div class="hero-side">
-        <span class="hero-index">WAD / 05</span>
-        <p>
-          A minimal full-stack library interface built with Vue 3 Composition API and
-          native Fetch API.
-        </p>
+    <section class="collection-head page-container">
+      <p class="breadcrumb">Home / Library</p>
+      <div class="title-row">
+        <div>
+          <h1>Library Collection</h1>
+          <p class="collection-count">{{ totalBooks }} books in catalog</p>
+        </div>
+        <button class="button button-dark" type="button" @click="openCreateForm">
+          Add book
+        </button>
       </div>
     </section>
 
-    <section class="page-container dashboard-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">OVERVIEW</p>
-          <h2>Library at a glance</h2>
-        </div>
-        <button class="primary-button" type="button" @click="openCreateForm">
-          <span>+</span>
-          Tambah Buku
+    <section class="page-container stats-row" aria-label="Ringkasan perpustakaan">
+      <article class="stat-box">
+        <span>Total books</span>
+        <strong>{{ totalBooks }}</strong>
+      </article>
+      <article class="stat-box">
+        <span>Low + out</span>
+        <strong>{{ lowAndOutStock }}</strong>
+      </article>
+      <article class="stat-box">
+        <span>Categories</span>
+        <strong>{{ totalCategories }}</strong>
+      </article>
+      <article class="stat-box">
+        <span>Total copies</span>
+        <strong>{{ totalCopies }}</strong>
+      </article>
+    </section>
+
+    <section class="page-container catalog-section">
+      <div class="catalog-toolbar">
+        <label class="search-field">
+          <span class="sr-only">Cari berdasarkan judul atau penulis</span>
+          <input
+            v-model="searchQuery"
+            type="search"
+            placeholder="Search title or author"
+            aria-label="Cari berdasarkan judul atau penulis"
+          />
+        </label>
+
+        <button class="sort-control" type="button" @click="toggleSort">
+          Sort: {{ sortDirection === 'asc' ? 'A–Z' : 'Z–A' }}
         </button>
       </div>
 
-      <div class="stats-grid">
-        <article class="stat-card stat-card-dark">
-          <span class="stat-kicker">01 / COLLECTION</span>
-          <strong>{{ totalBooks }}</strong>
-          <p>Total Buku</p>
-        </article>
-        <article class="stat-card">
-          <span class="stat-kicker">02 / ATTENTION</span>
-          <strong>{{ lowAndOutStock }}</strong>
-          <p>Menipis + Habis</p>
-        </article>
-        <article class="stat-card">
-          <span class="stat-kicker">03 / CATEGORIES</span>
-          <strong>{{ totalCategories }}</strong>
-          <p>Jumlah Kategori</p>
-        </article>
-        <article class="stat-card">
-          <span class="stat-kicker">04 / COPIES</span>
-          <strong>{{ totalCopies }}</strong>
-          <p>Total Eksemplar</p>
-        </article>
+      <div class="catalog-line">
+        <strong>{{ resultsLabel }}</strong>
+        <span v-if="!loading && !errorMessage">Data loaded from FastAPI</span>
       </div>
 
-      <div v-if="successMessage" class="notice notice-success" role="status">
-        <span class="notice-icon">✓</span>
+      <div v-if="successMessage" class="message message-success" role="status">
         {{ successMessage }}
       </div>
 
-      <div v-if="errorMessage" class="notice notice-error" role="alert">
-        <span class="notice-icon">!</span>
+      <div v-if="errorMessage" class="message message-error" role="alert">
         <div>
-          <strong>Koneksi bermasalah</strong>
+          <strong>Connection error</strong>
           <p>{{ errorMessage }}</p>
         </div>
-        <button type="button" @click="loadBooks">Coba lagi</button>
+        <button class="text-button" type="button" @click="loadBooks">Try again</button>
       </div>
 
-      <section class="catalog-panel">
-        <div class="catalog-toolbar">
-          <label class="search-field">
-            <span class="search-icon">⌕</span>
-            <input
-              v-model="searchQuery"
-              type="search"
-              placeholder="Cari judul atau penulis..."
-              aria-label="Cari berdasarkan judul atau penulis"
-            />
-          </label>
-
-          <button class="sort-button" type="button" @click="toggleSort">
-            Judul {{ sortDirection === 'asc' ? 'A—Z' : 'Z—A' }}
-            <span>↕</span>
-          </button>
+      <div v-if="loading" class="loading-grid" aria-live="polite">
+        <div v-for="index in 8" :key="index" class="book-card book-card-loading">
+          <div class="cover-placeholder"></div>
+          <div class="loading-line"></div>
+          <div class="loading-line loading-line-short"></div>
         </div>
+      </div>
 
-        <div class="catalog-meta">
-          <p>{{ resultsLabel }}</p>
-          <span v-if="!loading && !errorMessage" class="live-label">
-            <span class="status-dot"></span>
-            Data berhasil dimuat
-          </span>
-        </div>
+      <div v-else-if="!errorMessage && sortedBooks.length === 0" class="empty-state">
+        <h2>No books found</h2>
+        <p>Coba kata kunci lain atau tambahkan buku baru.</p>
+        <button class="text-button" type="button" @click="searchQuery = ''">
+          Clear search
+        </button>
+      </div>
 
-        <div v-if="loading" class="loading-state" aria-live="polite">
-          <div v-for="index in 5" :key="index" class="skeleton-row">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
+      <div v-else-if="!errorMessage" class="book-grid">
+        <article v-for="book in sortedBooks" :key="book.id" class="book-card">
+          <div class="book-cover" :class="getStockStatus(book.stok).className">
+            <span class="cover-category">{{ book.kategori }}</span>
+            <span class="cover-number">{{ String(book.id).padStart(2, '0') }}</span>
           </div>
-          <p>Memuat koleksi dari backend...</p>
-        </div>
 
-        <div v-else-if="!errorMessage && sortedBooks.length === 0" class="empty-state">
-          <div class="empty-symbol">Ø</div>
-          <h3>Tidak ada buku ditemukan</h3>
-          <p>Coba kata kunci lain atau tambahkan buku baru.</p>
-          <button class="secondary-button" type="button" @click="searchQuery = ''">
-            Hapus pencarian
-          </button>
-        </div>
-
-        <div v-else-if="!errorMessage" class="table-wrapper">
-          <table class="books-table">
-            <thead>
-              <tr>
-                <th>Book / Author</th>
-                <th>Kategori</th>
-                <th>Stok</th>
-                <th>Status</th>
-                <th><span class="sr-only">Aksi</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="book in sortedBooks" :key="book.id">
-                <td data-label="Book / Author">
-                  <div class="book-cell">
-                    <span class="book-index">{{ String(book.id).padStart(2, '0') }}</span>
-                    <div>
-                      <strong>{{ book.judul }}</strong>
-                      <small>{{ book.penulis }}</small>
-                    </div>
-                  </div>
-                </td>
-                <td data-label="Kategori">
-                  <span class="category-chip">{{ book.kategori }}</span>
-                </td>
-                <td data-label="Stok">
-                  <span class="stock-number">{{ book.stok }}</span>
-                </td>
-                <td data-label="Status">
-                  <span
-                    class="stock-badge"
-                    :class="getStockStatus(book.stok).className"
-                  >
-                    <span></span>
-                    {{ getStockStatus(book.stok).label }}
-                  </span>
-                </td>
-                <td data-label="Aksi">
-                  <div class="action-buttons">
-                    <button
-                      class="icon-button"
-                      type="button"
-                      :aria-label="`Edit ${book.judul}`"
-                      title="Edit buku"
-                      @click="openEditForm(book)"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      class="icon-button icon-button-danger"
-                      type="button"
-                      :aria-label="`Hapus ${book.judul}`"
-                      title="Hapus buku"
-                      @click="removeBook(book)"
-                    >
-                      Hapus
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="category-section">
-        <div class="section-heading section-heading-compact">
-          <div>
-            <p class="eyebrow">BONUS / CSS VISUAL</p>
-            <h2>Stok per kategori</h2>
-          </div>
-          <p class="section-note">Dihitung dengan computed, tanpa chart library.</p>
-        </div>
-
-        <div class="category-bars">
-          <div v-for="item in categorySummary" :key="item.category" class="bar-row">
-            <div class="bar-meta">
-              <span>{{ item.category }}</span>
-              <strong>{{ item.stock }} eks.</strong>
+          <div class="book-info">
+            <div class="book-heading">
+              <div>
+                <h2>{{ book.judul }}</h2>
+                <p>{{ book.penulis }}</p>
+              </div>
+              <span class="stock-label" :class="getStockStatus(book.stok).className">
+                {{ getStockStatus(book.stok).label }}
+              </span>
             </div>
-            <div class="bar-track">
-              <div class="bar-fill" :style="{ width: `${item.width}%` }"></div>
+
+            <div class="book-meta">
+              <span>{{ book.kategori }}</span>
+              <span>Stock {{ book.stok }}</span>
+            </div>
+
+            <div class="book-actions">
+              <button type="button" @click="openEditForm(book)">Edit</button>
+              <button type="button" @click="removeBook(book)">Delete</button>
             </div>
           </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page-container stock-section">
+      <div class="stock-heading">
+        <div>
+          <p class="overline">BONUS</p>
+          <h2>Stock by category</h2>
         </div>
-      </section>
+        <p>Computed from the same book data.</p>
+      </div>
+
+      <div class="category-list">
+        <div v-for="item in categorySummary" :key="item.category" class="category-row">
+          <div class="category-meta">
+            <span>{{ item.category }}</span>
+            <strong>{{ item.stock }}</strong>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" :style="{ width: `${item.width}%` }"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <div v-if="isFormOpen" class="modal-backdrop" @click.self="closeForm">
       <section class="book-modal" role="dialog" aria-modal="true" aria-labelledby="form-title">
         <div class="modal-header">
           <div>
-            <p class="eyebrow">{{ editingId ? 'EDIT RECORD' : 'NEW RECORD' }}</p>
-            <h2 id="form-title">{{ editingId ? 'Edit buku' : 'Tambah buku' }}</h2>
+            <p class="overline">{{ editingId ? 'EDIT BOOK' : 'NEW BOOK' }}</p>
+            <h2 id="form-title">{{ editingId ? 'Edit book' : 'Add book' }}</h2>
           </div>
-          <button class="close-button" type="button" aria-label="Tutup form" @click="closeForm">
+          <button class="modal-close" type="button" aria-label="Tutup form" @click="closeForm">
             ×
           </button>
         </div>
@@ -438,17 +362,14 @@ onMounted(loadBooks)
             </label>
           </div>
 
-          <div class="threshold-note">
-            <span class="mini-dot"></span>
-            Habis = 0 · Menipis = 1–3 · Tersedia = 4+
-          </div>
+          <p class="form-note">Habis = 0 · Menipis = 1–3 · Tersedia = 4+</p>
 
           <div class="form-actions">
-            <button class="secondary-button" type="button" :disabled="saving" @click="closeForm">
-              Batal
+            <button class="button button-light" type="button" :disabled="saving" @click="closeForm">
+              Cancel
             </button>
-            <button class="primary-button" type="submit" :disabled="saving">
-              {{ saving ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Buku' }}
+            <button class="button button-dark" type="submit" :disabled="saving">
+              {{ saving ? 'Saving...' : editingId ? 'Save changes' : 'Add book' }}
             </button>
           </div>
         </form>
