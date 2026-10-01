@@ -82,12 +82,12 @@ const categorySummary = computed(() => {
   }))
 })
 
-const resultsLabel = computed(() => `${sortedBooks.value.length} books`)
+const resultsLabel = computed(() => `${sortedBooks.value.length} buku`)
 
 function getStockStatus(stock) {
-  if (stock === 0) return { label: 'Sold out', className: 'stock-out' }
-  if (stock <= 3) return { label: 'Low stock', className: 'stock-low' }
-  return { label: 'Available', className: 'stock-available' }
+  if (stock === 0) return { label: 'Stok Habis', className: 'stock-out' }
+  if (stock <= 3) return { label: 'Menipis', className: 'stock-low' }
+  return { label: 'Tersedia', className: 'stock-available' }
 }
 
 function toggleSort() {
@@ -192,33 +192,33 @@ onMounted(loadBooks)
 <template>
   <main>
     <section class="collection-head page-container">
-      <p class="breadcrumb">Home / Library</p>
+      <p class="breadcrumb">Koleksi</p>
       <div class="title-row">
         <div>
-          <h1>Library Collection</h1>
-          <p class="collection-count">{{ totalBooks }} books in catalog</p>
+          <h1>Perpustakaan</h1>
+          <p class="collection-count">{{ totalBooks }} buku</p>
         </div>
         <button class="button button-dark" type="button" @click="openCreateForm">
-          Add book
+          Tambah buku
         </button>
       </div>
     </section>
 
     <section class="page-container stats-row" aria-label="Ringkasan perpustakaan">
       <article class="stat-box">
-        <span>Total books</span>
+        <span>Total buku</span>
         <strong>{{ totalBooks }}</strong>
       </article>
       <article class="stat-box">
-        <span>Low + out</span>
+        <span>Menipis + habis</span>
         <strong>{{ lowAndOutStock }}</strong>
       </article>
       <article class="stat-box">
-        <span>Categories</span>
+        <span>Kategori</span>
         <strong>{{ totalCategories }}</strong>
       </article>
       <article class="stat-box">
-        <span>Total copies</span>
+        <span>Total eksemplar</span>
         <strong>{{ totalCopies }}</strong>
       </article>
     </section>
@@ -230,19 +230,18 @@ onMounted(loadBooks)
           <input
             v-model="searchQuery"
             type="search"
-            placeholder="Search title or author"
+            placeholder="Cari judul atau penulis"
             aria-label="Cari berdasarkan judul atau penulis"
           />
         </label>
 
         <button class="sort-control" type="button" @click="toggleSort">
-          Sort: {{ sortDirection === 'asc' ? 'A–Z' : 'Z–A' }}
+          Urutkan: {{ sortDirection === 'asc' ? 'A–Z' : 'Z–A' }}
         </button>
       </div>
 
       <div class="catalog-line">
         <strong>{{ resultsLabel }}</strong>
-        <span v-if="!loading && !errorMessage">Data loaded from FastAPI</span>
       </div>
 
       <div v-if="successMessage" class="message message-success" role="status">
@@ -251,10 +250,10 @@ onMounted(loadBooks)
 
       <div v-if="errorMessage" class="message message-error" role="alert">
         <div>
-          <strong>Connection error</strong>
+          <strong>Koneksi bermasalah</strong>
           <p>{{ errorMessage }}</p>
         </div>
-        <button class="text-button" type="button" @click="loadBooks">Try again</button>
+        <button class="text-button" type="button" @click="loadBooks">Coba lagi</button>
       </div>
 
       <div v-if="loading" class="loading-grid" aria-live="polite">
@@ -266,10 +265,10 @@ onMounted(loadBooks)
       </div>
 
       <div v-else-if="!errorMessage && sortedBooks.length === 0" class="empty-state">
-        <h2>No books found</h2>
+        <h2>Buku tidak ditemukan</h2>
         <p>Coba kata kunci lain atau tambahkan buku baru.</p>
         <button class="text-button" type="button" @click="searchQuery = ''">
-          Clear search
+          Hapus pencarian
         </button>
       </div>
 
@@ -293,12 +292,12 @@ onMounted(loadBooks)
 
             <div class="book-meta">
               <span>{{ book.kategori }}</span>
-              <span>Stock {{ book.stok }}</span>
+              <span>Stok {{ book.stok }}</span>
             </div>
 
             <div class="book-actions">
               <button type="button" @click="openEditForm(book)">Edit</button>
-              <button type="button" @click="removeBook(book)">Delete</button>
+              <button type="button" @click="removeBook(book)">Hapus</button>
             </div>
           </div>
         </article>
@@ -308,10 +307,8 @@ onMounted(loadBooks)
     <section class="page-container stock-section">
       <div class="stock-heading">
         <div>
-          <p class="overline">BONUS</p>
-          <h2>Stock by category</h2>
+          <h2>Stok per kategori</h2>
         </div>
-        <p>Computed from the same book data.</p>
       </div>
 
       <div class="category-list">
@@ -331,8 +328,8 @@ onMounted(loadBooks)
       <section class="book-modal" role="dialog" aria-modal="true" aria-labelledby="form-title">
         <div class="modal-header">
           <div>
-            <p class="overline">{{ editingId ? 'EDIT BOOK' : 'NEW BOOK' }}</p>
-            <h2 id="form-title">{{ editingId ? 'Edit book' : 'Add book' }}</h2>
+            <p class="overline">{{ editingId ? 'EDIT BUKU' : 'BUKU BARU' }}</p>
+            <h2 id="form-title">{{ editingId ? 'Edit book' : 'Tambah buku' }}</h2>
           </div>
           <button class="modal-close" type="button" aria-label="Tutup form" @click="closeForm">
             ×
@@ -366,10 +363,10 @@ onMounted(loadBooks)
 
           <div class="form-actions">
             <button class="button button-light" type="button" :disabled="saving" @click="closeForm">
-              Cancel
+              Batal
             </button>
             <button class="button button-dark" type="submit" :disabled="saving">
-              {{ saving ? 'Saving...' : editingId ? 'Save changes' : 'Add book' }}
+              {{ saving ? 'Saving...' : editingId ? 'Save changes' : 'Tambah buku' }}
             </button>
           </div>
         </form>
