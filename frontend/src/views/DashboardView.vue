@@ -24,7 +24,6 @@ const emptyForm = () => ({
   stok: 0,
 })
 
-// State form memakai ref agar sesuai ketentuan UTS.
 const form = ref(emptyForm())
 
 const filteredBooks = computed(() => {
@@ -80,6 +79,25 @@ const categorySummary = computed(() => {
     ...item,
     width: Math.round((item.stock / highestStock) * 100),
   }))
+})
+
+const categoryOptions = computed(() => {
+  const defaults = [
+    'Novel',
+    'Teknologi',
+    'Sejarah',
+    'Desain',
+    'Pengembangan Diri',
+    'Psikologi',
+    'Produktivitas',
+    'Bisnis',
+  ]
+
+  const fromBooks = books.value.map((book) => book.kategori).filter(Boolean)
+
+  return [...new Set([...fromBooks, ...defaults])].sort((a, b) =>
+    a.localeCompare(b, 'id', { sensitivity: 'base' }),
+  )
 })
 
 const resultsLabel = computed(() => `${sortedBooks.value.length} buku`)
@@ -145,10 +163,15 @@ async function submitForm() {
   saving.value = true
   errorMessage.value = ''
 
+  const rawCategory = form.value.kategori.trim()
+  const existingCategory = categoryOptions.value.find(
+    (category) => category.toLowerCase() === rawCategory.toLowerCase(),
+  )
+
   const payload = {
     judul: form.value.judul.trim(),
     penulis: form.value.penulis.trim(),
-    kategori: form.value.kategori.trim(),
+    kategori: existingCategory || rawCategory,
     stok: Number(form.value.stok),
   }
 
@@ -192,12 +215,14 @@ onMounted(loadBooks)
 <template>
   <main>
     <section class="collection-head page-container">
-      <p class="breadcrumb">Koleksi</p>
+      <p class="breadcrumb">Koleksi buku</p>
+
       <div class="title-row">
         <div>
           <h1>Perpustakaan</h1>
-          <p class="collection-count">{{ totalBooks }} buku</p>
+          <p class="collection-count">{{ totalBooks }} buku dalam koleksi</p>
         </div>
+
         <button class="button button-dark" type="button" @click="openCreateForm">
           Tambah buku
         </button>
@@ -236,7 +261,7 @@ onMounted(loadBooks)
         </label>
 
         <button class="sort-control" type="button" @click="toggleSort">
-          Urutkan: {{ sortDirection === 'asc' ? 'A–Z' : 'Z–A' }}
+          {{ sortDirection === 'asc' ? 'A–Z' : 'Z–A' }}
         </button>
       </div>
 
@@ -276,7 +301,10 @@ onMounted(loadBooks)
         <article v-for="book in sortedBooks" :key="book.id" class="book-card">
           <div class="book-cover" :class="getStockStatus(book.stok).className">
             <span class="cover-category">{{ book.kategori }}</span>
-            <span class="cover-number">{{ String(book.id).padStart(2, '0') }}</span>
+            <div class="cover-copy">
+              <span class="cover-kicker">Library</span>
+              <strong>{{ book.judul }}</strong>
+            </div>
           </div>
 
           <div class="book-info">
@@ -285,6 +313,7 @@ onMounted(loadBooks)
                 <h2>{{ book.judul }}</h2>
                 <p>{{ book.penulis }}</p>
               </div>
+
               <span class="stock-label" :class="getStockStatus(book.stok).className">
                 {{ getStockStatus(book.stok).label }}
               </span>
@@ -304,11 +333,9 @@ onMounted(loadBooks)
       </div>
     </section>
 
-    <section class="page-container stock-section">
+    <section v-if="!loading && !errorMessage" class="page-container stock-section">
       <div class="stock-heading">
-        <div>
-          <h2>Stok per kategori</h2>
-        </div>
+        <h2>Stok per kategori</h2>
       </div>
 
       <div class="category-list">
@@ -317,7 +344,8 @@ onMounted(loadBooks)
             <span>{{ item.category }}</span>
             <strong>{{ item.stock }}</strong>
           </div>
-          <div class="bar-track">
+
+          <div class="bar-track" aria-hidden="true">
             <div class="bar-fill" :style="{ width: `${item.width}%` }"></div>
           </div>
         </div>
@@ -328,9 +356,10 @@ onMounted(loadBooks)
       <section class="book-modal" role="dialog" aria-modal="true" aria-labelledby="form-title">
         <div class="modal-header">
           <div>
-            <p class="overline">{{ editingId ? 'EDIT BUKU' : 'BUKU BARU' }}</p>
-            <h2 id="form-title">{{ editingId ? 'Edit book' : 'Tambah buku' }}</h2>
+            <p class="overline">{{ editingId ? 'Edit koleksi' : 'Buku baru' }}</p>
+            <h2 id="form-title">{{ editingId ? 'Edit buku' : 'Tambah buku' }}</h2>
           </div>
+
           <button class="modal-close" type="button" aria-label="Tutup form" @click="closeForm">
             ×
           </button>
@@ -339,34 +368,70 @@ onMounted(loadBooks)
         <form class="book-form" @submit.prevent="submitForm">
           <label>
             <span>Judul buku</span>
-            <input v-model="form.judul" required minlength="2" maxlength="120" />
+            <input
+              v-model="form.judul"
+              required
+              minlength="2"
+              maxlength="120"
+              placeholder="Contoh: Clean Code"
+            />
           </label>
 
           <label>
             <span>Penulis</span>
-            <input v-model="form.penulis" required minlength="2" maxlength="100" />
+            <input
+              v-model="form.penulis"
+              required
+              minlength="2"
+              maxlength="100"
+              placeholder="Nama penulis"
+            />
           </label>
 
           <div class="form-row">
-            <label>
+            <label class="category-field">
               <span>Kategori</span>
-              <input v-model="form.kategori" required minlength="2" maxlength="60" />
+              <div class="combo-field">
+                <input
+                  v-model="form.kategori"
+                  list="category-options"
+                  required
+                  minlength="2"
+                  maxlength="60"
+                  autocomplete="off"
+                  placeholder="Pilih atau ketik kategori"
+                />
+                <span class="combo-chevron" aria-hidden="true">⌄</span>
+              </div>
+
+              <datalist id="category-options">
+                <option
+                  v-for="category in categoryOptions"
+                  :key="category"
+                  :value="category"
+                />
+              </datalist>
             </label>
 
             <label>
               <span>Stok</span>
-              <input v-model.number="form.stok" type="number" min="0" max="9999" required />
+              <input
+                v-model.number="form.stok"
+                type="number"
+                min="0"
+                max="9999"
+                required
+                placeholder="0"
+              />
             </label>
           </div>
-
-          <p class="form-note">Habis = 0 · Menipis = 1–3 · Tersedia = 4+</p>
 
           <div class="form-actions">
             <button class="button button-light" type="button" :disabled="saving" @click="closeForm">
               Batal
             </button>
             <button class="button button-dark" type="submit" :disabled="saving">
-              {{ saving ? 'Saving...' : editingId ? 'Save changes' : 'Tambah buku' }}
+              {{ saving ? 'Menyimpan...' : editingId ? 'Simpan perubahan' : 'Tambah buku' }}
             </button>
           </div>
         </form>
