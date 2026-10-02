@@ -26,7 +26,7 @@ class Book(BookCreate):
 
 
 def load_seed_books() -> list[dict]:
-    """Membaca data awal dari JSON ke list Python in-memory."""
+    """Muat daftar buku dari file JSON."""
     try:
         with SEED_FILE.open("r", encoding="utf-8") as file:
             data = load(file)
@@ -38,7 +38,6 @@ def load_seed_books() -> list[dict]:
     if not isinstance(data, list):
         raise RuntimeError("books.json harus berisi array/list.")
 
-    # Validasi seed memakai skema Pydantic yang sama dengan response API.
     validated_books = [Book(**item).model_dump() for item in data]
     return validated_books
 
@@ -49,7 +48,7 @@ app = FastAPI(
     title="WAD05 Library Dashboard API",
     description=(
         "REST API sederhana untuk UTS Web Application Development. "
-        "Data disimpan sebagai list Python in-memory dan di-seed dari JSON."
+        "Data awal dibaca dari file JSON."
     ),
     version="1.0.0",
 )
@@ -87,7 +86,7 @@ async def health():
     response_model=list[Book],
     tags=["Books"],
     summary="Ambil seluruh buku",
-    description="Mengembalikan seluruh data buku dari list in-memory.",
+    description="Mengembalikan seluruh data buku.",
 )
 async def get_books():
     return books
@@ -99,7 +98,7 @@ async def get_books():
     status_code=status.HTTP_201_CREATED,
     tags=["Books"],
     summary="Tambah buku baru",
-    description="Membuat buku baru dan menambahkannya ke list in-memory.",
+    description="Menambahkan buku baru.",
 )
 async def create_book(payload: BookCreate):
     next_id = max((book["id"] for book in books), default=0) + 1
@@ -113,7 +112,7 @@ async def create_book(payload: BookCreate):
     response_model=Book,
     tags=["Books"],
     summary="Perbarui buku",
-    description="Fitur bonus: memperbarui seluruh field buku berdasarkan ID.",
+    description="Memperbarui data buku berdasarkan ID.",
 )
 async def update_book(book_id: int, payload: BookCreate):
     for index, book in enumerate(books):
@@ -133,7 +132,7 @@ async def update_book(book_id: int, payload: BookCreate):
     status_code=status.HTTP_204_NO_CONTENT,
     tags=["Books"],
     summary="Hapus buku",
-    description="Menghapus buku berdasarkan ID dari list in-memory.",
+    description="Menghapus buku berdasarkan ID.",
 )
 async def delete_book(book_id: int):
     for index, book in enumerate(books):
