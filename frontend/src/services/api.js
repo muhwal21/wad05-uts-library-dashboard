@@ -17,9 +17,7 @@ async function request(path, options = {}) {
       if (body.detail) {
         message = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail)
       }
-    } catch {
-      // Response tidak selalu mempunyai body JSON.
-    }
+    } catch {}
 
     throw new Error(message)
   }
